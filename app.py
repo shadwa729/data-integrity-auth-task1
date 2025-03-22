@@ -13,14 +13,14 @@ app = Flask(__name__)
 # ------------------ DATABASE CONNECTION ------------------
 db = pymysql.connect(
     host="localhost",
-    user="root",  # Change if needed
-    password="",  # Add your MySQL password
+    user="root",  
+    password="",  
     database="auth_db"
 )
 cursor = db.cursor()
 
 # ------------------ JWT CONFIGURATION (TOKEN EXPIRES IN 10 MINUTES) ------------------
-app.config['JWT_SECRET_KEY'] = 'supersecretkey'  # Change this to a strong secret key
+app.config['JWT_SECRET_KEY'] = 'supersecretkey'  
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=10)  # Token expires in 10 minutes
 jwt = JWTManager(app)
 
