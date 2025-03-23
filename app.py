@@ -45,9 +45,9 @@ def register():
         query = "INSERT INTO users (username, password, twofa_secret) VALUES (%s, %s, %s)"
         cursor.execute(query, (username, hashed_pw, twofa_secret))
         db.commit()
-        return jsonify({"message": "✅ User registered successfully!", "2FA Secret": twofa_secret}), 201
+        return jsonify({"message": " User registered successfully!", "2FA Secret": twofa_secret}), 201
     except pymysql.IntegrityError:
-        return jsonify({"error": "❌ Username already exists"}), 409
+        return jsonify({"error": " Username already exists"}), 409
 
 # ------------------ STEP 2: GENERATE GOOGLE AUTH QR CODE ------------------
 
@@ -106,9 +106,9 @@ def verify_2fa():
     # Verify OTP Code
     totp = pyotp.TOTP(twofa_secret)
     if totp.verify(otp_code):
-        return jsonify({"message": "✅ 2FA verification successful!"}), 200
+        return jsonify({"message": " 2FA verification successful!"}), 200
     else:
-        return jsonify({"error": "❌ Invalid 2FA code"}), 401
+        return jsonify({"error": " Invalid 2FA code"}), 401
 
 # ------------------ STEP 4: LOGIN WITH 2FA & JWT TOKEN ------------------
 
@@ -159,12 +159,12 @@ def verify_login_2fa():
     # Verify OTP Code
     totp = pyotp.TOTP(twofa_secret)
     if not totp.verify(otp_code):
-        return jsonify({"error": "❌ Invalid 2FA code"}), 401
+        return jsonify({"error": " Invalid 2FA code"}), 401
 
     # Generate JWT Token (Expires in 10 Minutes)
     access_token = create_access_token(identity=username)
 
-    return jsonify({"message": "✅ Login successful!", "access_token": access_token}), 200
+    return jsonify({"message": " Login successful!", "access_token": access_token}), 200
 
 # ------------------ STEP 5: SECURED CRUD OPERATIONS ------------------
 
@@ -184,7 +184,7 @@ def create_product():
     cursor.execute(query, (name, description, price, quantity))
     db.commit()
 
-    return jsonify({"message": "✅ Product created successfully!"}), 201
+    return jsonify({"message": " Product created successfully!"}), 201
 
 @app.route('/products/<int:product_id>', methods=['PUT'])
 @jwt_required()
@@ -199,14 +199,14 @@ def update_product(product_id):
                    (name, description, price, quantity, product_id))
     db.commit()
 
-    return jsonify({"message": "✅ Product updated successfully!"}), 200
+    return jsonify({"message": " Product updated successfully!"}), 200
 
 @app.route('/products/<int:product_id>', methods=['DELETE'])
 @jwt_required()
 def delete_product(product_id):
     cursor.execute("DELETE FROM products WHERE id = %s", (product_id,))
     db.commit()
-    return jsonify({"message": "✅ Product deleted successfully!"}), 200
+    return jsonify({"message": " Product deleted successfully!"}), 200
 @app.route('/products', methods=['GET'])
 @jwt_required()
 def get_products():
