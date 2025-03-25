@@ -33,10 +33,10 @@ def register():
     if not username or not password:
         return jsonify({"error": "Username and password required"}), 400
     
-    #Hash the password
+    # Hash the password
     hashed_pw = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
-    #Generate a 2FA secret key
+    # Generate a 2FA secret key
     twofa_secret = pyotp.random_base32()
 
     try:
@@ -69,7 +69,7 @@ def login():
     if not bcrypt.checkpw(password.encode('utf-8'), stored_password.encode('utf-8')):
         return jsonify({"error": "Invalid credentials"}), 401
 
-    # Generate OTP Auth URL & QR Code
+    # Generate a new OTP Auth URL & QR Code every time
     otp_auth_url = pyotp.totp.TOTP(twofa_secret).provisioning_uri(username, issuer_name="SecureApp")
     qr = qrcode.make(otp_auth_url)
     img_io = BytesIO()
@@ -130,10 +130,34 @@ def get_products():
     products = cursor.fetchall()
     return jsonify({"products": [{"id": p[0], "name": p[1], "description": p[2], "price": float(p[3]), "quantity": p[4]} for p in products]}), 200
 
+@app.route('/products/<int:product_id>', methods=['GET'])
+@jwt_required()
+def get_product_by_id(product_id):
+    cursor.execute("SELECT * FROM products WHERE id = %s", (product_id,))
+    product = cursor.fetchone()
+    
+    if not product:
+        return jsonify({"error": "Product not found"}), 404
+
+    return jsonify({
+        "id": product[0],
+        "name": product[1],
+        "description": product[2],
+        "price": float(product[3]),
+        "quantity": product[4]
+    }), 200
+
 @app.route('/products/<int:product_id>', methods=['PUT'])
 @jwt_required()
 def update_product(product_id):
     data = request.json
+
+    # Check if product exists
+    cursor.execute("SELECT * FROM products WHERE id = %s", (product_id,))
+    product = cursor.fetchone()
+    if not product:
+        return jsonify({"error": "Product not found"}), 404
+
     cursor.execute("UPDATE products SET name=%s, description=%s, price=%s, quantity=%s WHERE id=%s",
                    (data.get('name'), data.get('description'), data.get('price'), data.get('quantity'), product_id))
     db.commit()
@@ -142,6 +166,12 @@ def update_product(product_id):
 @app.route('/products/<int:product_id>', methods=['DELETE'])
 @jwt_required()
 def delete_product(product_id):
+    # Check if product exists
+    cursor.execute("SELECT * FROM products WHERE id = %s", (product_id,))
+    product = cursor.fetchone()
+    if not product:
+        return jsonify({"error": "Product not found"}), 404
+
     cursor.execute("DELETE FROM products WHERE id = %s", (product_id,))
     db.commit()
     return jsonify({"message": "Product deleted successfully!"}), 200
