@@ -32,8 +32,11 @@ def register():
 
     if not username or not password:
         return jsonify({"error": "Username and password required"}), 400
-
+    
+    #Hash the password
     hashed_pw = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+    #Generate a 2FA secret key
     twofa_secret = pyotp.random_base32()
 
     try:
@@ -117,6 +120,7 @@ def create_product():
     query = "INSERT INTO products (name, description, price, quantity) VALUES (%s, %s, %s, %s)"
     cursor.execute(query, (name, description, price, quantity))
     db.commit()
+
     return jsonify({"message": "Product created successfully!"}), 201
 
 @app.route('/products', methods=['GET'])
